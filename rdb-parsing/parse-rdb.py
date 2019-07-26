@@ -253,6 +253,8 @@ maxi = 30
 for key, val in ddfs.items():
     val.to_csv(os.path.join(r'C:\Users\rsjon_000\Documents\mtsu-geoscience-tools\rdb-parsing\data\out',
                             key+'.csv'))
+    """
     i += 1
     if i == maxi:
         break
+    """
