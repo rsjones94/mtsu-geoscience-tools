@@ -1,3 +1,4 @@
+import os
 from datetime import date, datetime, timedelta
 from copy import deepcopy
 
@@ -169,7 +170,7 @@ for key, val in data.items():
     dfs[key]['datetime'] = pd.to_datetime(dfs[key]['datetime']).dt.date
 
 
-doer = 3
+doer = 15
 ex = 0
 ddfs = {}
 dfs_copy = deepcopy(dfs)
@@ -183,6 +184,7 @@ for key, val in dfs_copy.items():
     blank = pd.Series([None for c in cols], index=cols, name=None)
     print(f'blank len is {len(blank)}. ncol is {len(ddfs[key].columns)}')
 
+    """
     d_index = date_range[0]
     print(f'adding front. go from {d_index} to {d_first}')
     while d_index < d_first:
@@ -204,17 +206,53 @@ for key, val in dfs_copy.items():
             print(f"--------------Can't append {d_index}")
             pass
         d_index = d_index + timedelta(days=1)
+    """
+    fr = date_range[0]
+    to = d_first - timedelta(days=1)
+    if fr < to:
+        print(f'adding front. go from {fr} to {to}')
+        delta = timedelta(days=(to-fr).days)
+        index = pd.date_range(to - delta, periods=delta.days, freq='D')
+        front_df = pd.DataFrame(index=index, columns=cols)
+        try:
+            ddfs[key] = ddfs[key].append(front_df)
+        except ValueError:
+            print('cannot append')
 
+    fr = d_last + timedelta(days=1)
+    to = date_range[1] + timedelta(days=1)
+    if fr < to:
+        print(f'adding back. go from {fr} to {to}')
+        delta = timedelta(days=(to-fr).days)
+        index = pd.date_range(to - delta, periods=delta.days, freq='D')
+        front_df = pd.DataFrame(index=index, columns=cols)
+        try:
+            ddfs[key] = ddfs[key].append(front_df)
+        except ValueError:
+            print('cannot append')
+
+    # sort it
+    ddfs[key].index = pd.to_datetime(ddfs[key].index).date
     ddfs[key] = ddfs[key].sort_index()
-
-    # fix the datetime range
+    # slice the datetime range
     ddfs[key] = ddfs[key].loc[date_range[0]:date_range[1]]
     # remove duplicates
     ddfs[key] = ddfs[key][~ddfs[key].index.duplicated()]
 
+    """
     ex += 1
     if ex == doer:
         break
+    """
 
 for key, val in ddfs.items():
     print(key, len(val), val.iloc[0].name, val.iloc[-1].name)
+
+i = 0
+maxi = 30
+for key, val in ddfs.items():
+    val.to_csv(os.path.join(r'C:\Users\rsjon_000\Documents\mtsu-geoscience-tools\rdb-parsing\data\out',
+                            key+'.csv'))
+    i += 1
+    if i == maxi:
+        break

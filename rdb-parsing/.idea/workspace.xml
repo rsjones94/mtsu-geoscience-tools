@@ -13,10 +13,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/parse-rdb.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="933">
-              <caret line="211" column="23" lean-forward="true" selection-start-line="211" selection-start-column="23" selection-end-line="211" selection-end-column="23" />
+            <state relative-caret-position="1069">
+              <caret line="257" column="13" selection-start-line="257" selection-start-column="13" selection-end-line="257" selection-end-column="13" />
               <folding>
-                <element signature="e#0#35#0" expanded="true" />
+                <element signature="e#0#9#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -125,12 +125,12 @@
       <workItem from="1564094639092" duration="1556000" />
       <workItem from="1564096542920" duration="13487000" />
       <workItem from="1564110181900" duration="322000" />
-      <workItem from="1564110523310" duration="13893000" />
+      <workItem from="1564110523310" duration="16156000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="29258000" />
+    <option name="totallyTimeSpent" value="31521000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-1088" y="-978" width="1096" height="1896" extended-state="6" />
@@ -171,10 +171,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/parse-rdb.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="933">
-          <caret line="211" column="23" lean-forward="true" selection-start-line="211" selection-start-column="23" selection-end-line="211" selection-end-column="23" />
+        <state relative-caret-position="1069">
+          <caret line="257" column="13" selection-start-line="257" selection-start-column="13" selection-end-line="257" selection-end-column="13" />
           <folding>
-            <element signature="e#0#35#0" expanded="true" />
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
