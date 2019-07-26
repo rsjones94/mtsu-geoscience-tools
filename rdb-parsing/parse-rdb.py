@@ -44,9 +44,9 @@ parameter_meanings = {
     "99409": "Suspended_sediment_concentration_regression_mpl",
     }
 stat_meanings = {
-    '001': 'Maximum',
-    '002': 'Minimum',
-    '003': 'Mean'
+    '00001': 'Maximum',
+    '00002': 'Minimum',
+    '00003': 'Mean'
     }
 date_range = (date(1990, 1, 1), date(2019, 4, 30))
 
@@ -54,6 +54,8 @@ date_range = (date(1990, 1, 1), date(2019, 4, 30))
 def parse_parstat(parstat):
 
     subs = parstat.split('_')
+    if len(subs) == 1 or len(subs) == 4:
+        return 'unneeded'
     try:
         par = parameter_meanings[subs[1]]
         stat = stat_meanings[subs[2]]
@@ -80,7 +82,7 @@ def repair_missing_data(l):
     return new_list
 
 
-def rdbline_to_list(line, repair=True, lop=True):
+def rdbline_to_list(line, repair=True, lop=False):
     """
     Delimit using escape chars and but also keep those chars.
 
@@ -104,7 +106,7 @@ def rdbline_to_list(line, repair=True, lop=True):
             builder += i
     if repair:
         new_list = repair_missing_data(new_list)
-    new_list = [a for a in new_list if a not in ['\t', 'A', 'P', 'X', '\n']]
+    new_list = [a for a in new_list if a not in ['\t', '\n']]
     if lop:
         new_list = new_list[2:]
         new_list[0] = datetime.strptime(new_list[0], '%Y-%m-%d')
@@ -116,10 +118,41 @@ def rdbline_to_list(line, repair=True, lop=True):
     return new_list
 
 
+###########################
+
+
 with open(data_file) as f:
     content = f.readlines()
 
+data = {}
+recording = False
+for i, line in enumerate(content):
+    if 'agency_cd' in line:
+        recording = True
+        start = i
+        cols = rdbline_to_list(line, repair=True, lop=False)
+        other_cols = cols[:3]
+        num_cols = cols[3:]
+        num_cols = [parse_parstat(a) for a in num_cols]
+        all_cols = other_cols
+        all_cols.extend(num_cols)
+        site = rdbline_to_list(content[i+2], repair=True, lop=False)[1]
+        data[site] = [all_cols]
+        print(f'Collecting {site}')
+        continue
+    if recording and i != start+1:
+        rep_line = rdbline_to_list(line)
+        try:
+            if rep_line[1] != site:
+                recording = False
+            else:
+                data[site].append(rep_line)
+        except IndexError:
+            recording = False
 
-for line, i in enumerate(content[241:1000]):
-    l = rdbline_to_list(i, repair=True, lop=True)
-    print(line+301, len(l), l)
+for key, val in data.items():
+    print(f'site: {site}. {len(val)} entries')
+    standard = len(val[0])
+    for line in val:
+        assert len(line) == standard
+    print('validated')
