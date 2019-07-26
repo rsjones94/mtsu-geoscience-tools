@@ -1,4 +1,5 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
+from copy import deepcopy
 
 import pandas as pd
 
@@ -120,10 +121,11 @@ def rdbline_to_list(line, repair=True, lop=False):
 
 ###########################
 
-
+# read raw data
 with open(data_file) as f:
     content = f.readlines()
 
+# parse it
 data = {}
 recording = False
 for i, line in enumerate(content):
@@ -150,9 +152,69 @@ for i, line in enumerate(content):
         except IndexError:
             recording = False
 
+# validate and convert
+dfs = {}
 for key, val in data.items():
-    print(f'site: {site}. {len(val)} entries')
+    print(f'site: {key}. {len(val)} entries')
     standard = len(val[0])
     for line in val:
         assert len(line) == standard
-    print('validated')
+    print('validated. converting to df')
+    dfs[key] = pd.DataFrame.from_records(val[1:], columns=val[0])
+
+    # we only want to keep relevant columns
+    keep_cols = [c for c in dfs[key].columns if c != 'unneeded']
+    dfs[key] = dfs[key][keep_cols]
+    # convert str to date
+    dfs[key]['datetime'] = pd.to_datetime(dfs[key]['datetime']).dt.date
+
+
+doer = 3
+ex = 0
+ddfs = {}
+dfs_copy = deepcopy(dfs)
+for key, val in dfs_copy.items():
+    ddfs[key] = val
+    print(f'fixing dates for {key}')
+    ddfs[key] = dfs_copy[key].set_index('datetime')
+    d_first = ddfs[key].iloc[0].name
+    d_last = ddfs[key].iloc[-1].name
+    cols = ddfs[key].columns.values
+    blank = pd.Series([None for c in cols], index=cols, name=None)
+    print(f'blank len is {len(blank)}. ncol is {len(ddfs[key].columns)}')
+
+    d_index = date_range[0]
+    print(f'adding front. go from {d_index} to {d_first}')
+    while d_index < d_first:
+        blank.name = d_index
+        try:
+            ddfs[key] = ddfs[key].append(blank)
+        except ValueError:
+            print(f"--------------Can't append {d_index}")
+            pass
+        d_index = d_index + timedelta(days=1)
+
+    d_index = d_last
+    print(f'adding back. go from {d_index} to {date_range[1]}')
+    while d_index < date_range[1] + timedelta(days=1):
+        blank.name = d_index
+        try:
+            ddfs[key] = ddfs[key].append(blank)
+        except ValueError:
+            print(f"--------------Can't append {d_index}")
+            pass
+        d_index = d_index + timedelta(days=1)
+
+    ddfs[key] = ddfs[key].sort_index()
+
+    # fix the datetime range
+    ddfs[key] = ddfs[key].loc[date_range[0]:date_range[1]]
+    # remove duplicates
+    ddfs[key] = ddfs[key][~ddfs[key].index.duplicated()]
+
+    ex += 1
+    if ex == doer:
+        break
+
+for key, val in ddfs.items():
+    print(key, len(val), val.iloc[0].name, val.iloc[-1].name)
