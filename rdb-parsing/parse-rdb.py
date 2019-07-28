@@ -27,29 +27,33 @@ parameter_meanings = {
     }
 """
 parameter_meanings = {
-    "00400": "pH_water_unfiltered_field_standard units",
-    "00060": "Discharge_cfs",
-    "72137": "Discharge_tidally_filtered_cfs",
-    "00065": "Gage_height_feet",
-    "00070": "Turbidity_water_unfiltered_JTU",
-    "00076": "Turbidity_ water_unfiltered_NTU",
-    "63680": "Turbidity_water_FNU",
-    "00300": "Dissolved_oxygen_mpl",
-    "00301": "Dissolved_oxygen_percsat",
-    "00630": "Nitrate_plus_nitrite_unfiltered_mpl",
-    "00631": "Nitrate_plus_nitrite_filtered_mpl",
-    "99133": "Nitrate_plus_nitrite_insitu_mpl",
-    "99137": "Nitrate_water_insitu_mpl",
-    "80154": "Suspended_sediment_concentration_mpl",
-    "80155": "Suspended_sediment_discharge_shtd",
-    "80297": "Suspended_sediment_load_computed_shtd",
-    "99409": "Suspended_sediment_concentration_regression_mpl",
+    "00400": "pH",
+    "00060": "Discharge",
+    "72137": "Discharge_fil",
+    "00065": "Gage",
+    "00070": "Turb_Jackson",
+    "00076": "Turb_neph",
+    "63680": "Turb_FNU",
+    "00300": "DO_mgL",
+    "00301": "DO_percent",
+    "00630": "N_unfiltered",
+    "00631": "N_filtered",
+    "99133": "N_insitu",
+    "99137": "Nitrate_insitu",
+    "80154": "SS_mgL",
+    "80155": "SS_shorttonsperday",
+    "80297": "SS_regression1",
+    "99409": "SS_regression2",
     }
 stat_meanings = {
-    '00001': 'Maximum',
-    '00002': 'Minimum',
-    '00003': 'Mean'
+    '00001': 'max',
+    '00002': 'min',
+    '00003': 'mean'
     }
+giv_cols = []
+for i in parameter_meanings.values():
+    for j in stat_meanings.values():
+        giv_cols.append(i+'_'+j)
 date_range = (date(1990, 1, 1), date(2019, 4, 30))
 
 
@@ -170,8 +174,6 @@ for key, val in data.items():
     dfs[key]['datetime'] = pd.to_datetime(dfs[key]['datetime']).dt.date
 
 
-doer = 15
-ex = 0
 ddfs = {}
 dfs_copy = deepcopy(dfs)
 for key, val in dfs_copy.items():
@@ -184,29 +186,6 @@ for key, val in dfs_copy.items():
     blank = pd.Series([None for c in cols], index=cols, name=None)
     print(f'blank len is {len(blank)}. ncol is {len(ddfs[key].columns)}')
 
-    """
-    d_index = date_range[0]
-    print(f'adding front. go from {d_index} to {d_first}')
-    while d_index < d_first:
-        blank.name = d_index
-        try:
-            ddfs[key] = ddfs[key].append(blank)
-        except ValueError:
-            print(f"--------------Can't append {d_index}")
-            pass
-        d_index = d_index + timedelta(days=1)
-
-    d_index = d_last
-    print(f'adding back. go from {d_index} to {date_range[1]}')
-    while d_index < date_range[1] + timedelta(days=1):
-        blank.name = d_index
-        try:
-            ddfs[key] = ddfs[key].append(blank)
-        except ValueError:
-            print(f"--------------Can't append {d_index}")
-            pass
-        d_index = d_index + timedelta(days=1)
-    """
     fr = date_range[0]
     to = d_first - timedelta(days=1)
     if fr < to:
@@ -239,22 +218,25 @@ for key, val in dfs_copy.items():
     # remove duplicates
     ddfs[key] = ddfs[key][~ddfs[key].index.duplicated()]
 
-    """
-    ex += 1
-    if ex == doer:
-        break
-    """
-
 for key, val in ddfs.items():
     print(key, len(val), val.iloc[0].name, val.iloc[-1].name)
 
-i = 0
-maxi = 30
+# add missing cols and reorder
 for key, val in ddfs.items():
+    print(f'adding cols and reordering: {key}')
+    for c in giv_cols:
+        if c not in ddfs[key]:
+            ddfs[key][c] = None
+
+    ddfs[key] = ddfs[key][giv_cols]
+
+i = 0
+maxer = 20
+for key, val in ddfs.items():
+    val.index.name = 'Date'
     val.to_csv(os.path.join(r'C:\Users\rsjon_000\Documents\mtsu-geoscience-tools\rdb-parsing\data\out',
                             key+'.csv'))
-    """
     i += 1
-    if i == maxi:
+    if i == maxer:
         break
-    """
+
