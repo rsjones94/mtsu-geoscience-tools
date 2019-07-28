@@ -230,13 +230,9 @@ for key, val in ddfs.items():
 
     ddfs[key] = ddfs[key][giv_cols]
 
-i = 0
-maxer = 20
 for key, val in ddfs.items():
     val.index.name = 'Date'
     val.to_csv(os.path.join(r'C:\Users\rsjon_000\Documents\mtsu-geoscience-tools\rdb-parsing\data\out',
                             key+'.csv'))
-    i += 1
-    if i == maxer:
-        break
+
 
