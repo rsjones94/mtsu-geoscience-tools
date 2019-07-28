@@ -4,7 +4,9 @@ from copy import deepcopy
 
 import pandas as pd
 
-data_file = r'C:\Users\rsjon_000\Documents\mtsu-geoscience-tools\rdb-parsing\data\dv2.txt'
+path_nodata = r'C:\Users\rj3h\Desktop\rdb\parsed_nodata'
+path_999 = r'C:\Users\rj3h\Desktop\rdb\parsed_999'
+data_file = r'C:\Users\rj3h\Desktop\rdb\dv1.txt'
 """
 parameter_meanings = {
     "00400": "pH, water, unfiltered, field, standard units",
@@ -231,8 +233,11 @@ for key, val in ddfs.items():
     ddfs[key] = ddfs[key][giv_cols]
 
 for key, val in ddfs.items():
+    print(f'Writing {key}')
     val.index.name = 'Date'
-    val.to_csv(os.path.join(r'C:\Users\rsjon_000\Documents\mtsu-geoscience-tools\rdb-parsing\data\out',
+    val = val.replace(to_replace=[None], value='NoData')
+    val.to_csv(os.path.join(path_nodata,
                             key+'.csv'))
-
-
+    val = val.replace(to_replace=['NoData'], value=-999)
+    val.to_csv(os.path.join(path_999,
+                            key+'.csv'))
