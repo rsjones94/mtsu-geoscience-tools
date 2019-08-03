@@ -224,6 +224,7 @@ for key, val in ddfs.items():
     print(key, len(val), val.iloc[0].name, val.iloc[-1].name)
 
 # add missing cols and reorder
+bad = []
 for key, val in ddfs.items():
     print(f'adding cols and reordering: {key}')
     for c in giv_cols:
@@ -231,7 +232,19 @@ for key, val in ddfs.items():
             ddfs[key][c] = None
 
     ddfs[key] = ddfs[key][giv_cols]
+    try:
+        assert list(ddfs[key].columns) == giv_cols
+    except AssertionError:
+        print('bad')
+        bad.append(key)
 
+from collections import Counter
+bad_cols = {}
+for key in bad:
+    bad_cols[key] = Counter(list(ddfs[key].columns))
+    bad_cols[key] = {col:val for col,val in bad_cols[key].items() if val > 1}
+
+"""
 for key, val in ddfs.items():
     print(f'Writing {key}')
     val.index.name = 'Date'
@@ -241,3 +254,4 @@ for key, val in ddfs.items():
     val = val.replace(to_replace=['NoData'], value=-999)
     val.to_csv(os.path.join(path_999,
                             key+'.csv'))
+"""
