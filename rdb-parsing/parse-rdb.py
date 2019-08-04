@@ -1,8 +1,12 @@
 import os
-from datetime import date, datetime, timedelta
+
+import numbers
 from copy import deepcopy
+from collections import Counter
+from datetime import date, datetime, timedelta
 
 import pandas as pd
+import numpy as np
 
 path_nodata = r'C:\Users\rj3h\Desktop\rdb\parsed_nodata'
 path_999 = r'C:\Users\rj3h\Desktop\rdb\parsed_999'
@@ -238,11 +242,35 @@ for key, val in ddfs.items():
         print('bad')
         bad.append(key)
 
-from collections import Counter
 bad_cols = {}
 for key in bad:
     bad_cols[key] = Counter(list(ddfs[key].columns))
     bad_cols[key] = {col:val for col,val in bad_cols[key].items() if val > 1}
+
+"""
+# for fixing the duplicate columns
+fixed = {}
+for key in bad:
+    print(f'fixing duplicates for {key}')
+    a = deepcopy(ddfs[key])
+    a = a.replace(to_replace=[None, np.NaN], value=np.NaN)
+    a = a.convert_objects(convert_numeric=True)
+    b = a.groupby(by=a.columns, axis=1).apply(lambda g: g.mean(axis=1)if isinstance(g.iloc[0,0], numbers.Number)
+                                              else g.iloc[:,0])
+    b = b[giv_cols]
+    assert list(b.columns) == giv_cols
+    fixed[key] = b
+
+for key, val in fixed.items():
+    print(f'Writing {key}')
+    val.index.name = 'Date'
+    val = val.replace(to_replace=[None], value='NoData')
+    val.to_csv(os.path.join(path_nodata,
+                            key+'.csv'))
+    val = val.replace(to_replace=['NoData'], value=-999)
+    val.to_csv(os.path.join(path_999,
+                            key+'.csv'))
+"""
 
 """
 for key, val in ddfs.items():
